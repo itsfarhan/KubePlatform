@@ -1,0 +1,38 @@
+services:
+  registry: ghcr.io/itsfarhan
+  tag: v1.0.0
+  frontend:
+    image: frontend-go
+  agenda:
+    image: agenda-service
+  c4p:
+    image: c4p-service
+  notifications:
+    image: notifications-service
+install:
+  infrastructure: true
+  ingress: true
+postgresql:
+  image:
+    tag: latest
+  primary:
+    persistence:
+      size: "1Gi"
+    initdb:
+      user: postgres
+      password: postgres
+      scriptsConfigMap: c4p-init-sql
+  global:
+    postgresql:
+      auth:
+        postgresPassword: postgres
+redis:
+  architecture: standalone
+  image:
+    tag: latest
+  master:
+    persistence:
+      size: "1Gi"
+kafka:
+  persistence:
+    size: "1Gi"
