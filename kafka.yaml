@@ -1,3 +1,16 @@
+# kafka.yaml
+#
+# Standalone Kafka manifest used by install-infra.sh.
+#
+# This is intentionally separate from the Helm chart so that infrastructure
+# can be installed and managed independently from the application services.
+# The Helm chart (helm/conference-app/templates/kafka.yaml) has its own
+# templated version of this — used when install.infrastructure=true in values.yaml.
+#
+# Kafka is configured in KRaft mode (no ZooKeeper dependency).
+# It listens on port 9092 and is reachable inside the cluster at:
+#   conference-kafka.default.svc.cluster.local:9092
+---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
