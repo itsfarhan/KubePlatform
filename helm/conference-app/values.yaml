@@ -1,17 +1,39 @@
+# values.yaml — Conference Application Helm Chart
+#
+# All configurable values for the Conference Application.
+# Override any value at install time with --set or a custom values file:
+#   helm install conference helm/conference-app/ --set services.tag=v1.1.0
+#   helm install conference helm/conference-app/ -f my-values.yaml
+
+# ── Container Images ──────────────────────────────────────────────────────────
+# The registry and tag applied to all 4 application service images.
+# After running build-push.sh, set services.registry to your registry.
 services:
-  registry: ghcr.io/itsfarhan
-  tag: v1.0.0
+  registry: ghcr.io/itsfarhan   # Container registry where your images are hosted
+  tag: v1.0.0                   # Image tag — must match what was pushed by build-push.sh
+
   frontend:
-    image: frontend-go
+    image: frontend-go          # Image name (registry/image:tag)
+    debug: false                # Set to true to enable the Debug tab in the Backoffice
+                                # (shows Pod name, IP, node — useful for verifying load balancing)
   agenda:
     image: agenda-service
+
   c4p:
     image: c4p-service
+
   notifications:
     image: notifications-service
+
+# ── Feature Toggles ───────────────────────────────────────────────────────────
 install:
-  infrastructure: true
-  ingress: true
+  infrastructure: true  # true  → deploys Redis, PostgreSQL, Kafka inside the cluster (default)
+                        # false → expects external infra; set connection values per-service below
+  ingress: true         # true  → creates an Ingress rule so the app is reachable at http://localhost
+                        # false → use kubectl port-forward svc/frontend 8080:80 instead
+
+# ── PostgreSQL (Bitnami chart dependency) ─────────────────────────────────────
+# Only used when install.infrastructure=true
 postgresql:
   image:
     tag: latest
@@ -21,18 +43,25 @@ postgresql:
     initdb:
       user: postgres
       password: postgres
-      scriptsConfigMap: c4p-init-sql
+      scriptsConfigMap: c4p-init-sql   # ConfigMap that seeds the proposals table schema
   global:
     postgresql:
       auth:
-        postgresPassword: postgres
+        postgresPassword: postgres     # ⚠️ Change this for any non-local environment
+
+# ── Redis (Bitnami chart dependency) ──────────────────────────────────────────
+# Only used when install.infrastructure=true
 redis:
-  architecture: standalone
+  architecture: standalone             # standalone = single node, no replication (fine for dev)
   image:
     tag: latest
   master:
     persistence:
       size: "1Gi"
+
+# ── Kafka ─────────────────────────────────────────────────────────────────────
+# Only used when install.infrastructure=true
+# Kafka is deployed via helm/conference-app/templates/kafka.yaml (KRaft mode, no ZooKeeper)
 kafka:
   persistence:
     size: "1Gi"

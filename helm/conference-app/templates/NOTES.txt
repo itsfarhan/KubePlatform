@@ -1,8 +1,28 @@
 Cloud-Native Conference Application {{ .Chart.Version }}
 
-Chart Deployed: {{ .Chart.Name }} - {{ .Chart.Version }}
-Release Name: {{ .Release.Name }}
+Chart:   {{ .Chart.Name }} - {{ .Chart.Version }}
+Release: {{ .Release.Name }}
+---
 
-For more information visit: https://github.com/salaboy/platforms-on-k8s
+Monitor pod startup:
+  kubectl get pods -w
 
-Access the Conference Application Frontend by running `kubectl port-forward svc/frontend -n {{ .Release.Namespace }} 8080:80`
+Once all pods show 1/1 Running:
+
+{{- if .Values.install.ingress }}
+  Open in browser → http://localhost
+{{- else }}
+  Access via port-forward (Ingress is disabled):
+  kubectl port-forward svc/frontend -n {{ .Release.Namespace }} 8080:80
+  Open in browser → http://localhost:8080
+{{- end }}
+
+Quick walkthrough:
+  1. Go to Call for Proposals → submit a talk proposal
+  2. Go to Backoffice → Review Proposals → Approve it
+  3. Go to Agenda → see your approved talk listed
+  4. Go to Backoffice → Events → see all emitted events
+
+To uninstall:
+  helm uninstall {{ .Release.Name }}
+  kubectl delete pvc --all
